@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.curso</groupId>
-	<artifactId>suporteos2026</artifactId>
+	<artifactId>petshop2026</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>suporteos2026</name>
-	<description>API didática do curso de Spring Boot 2026</description>
+	<name>Petshop 2026</name>
+	<description>Gestão de tutores, pets e atendimentos de banho e tosa</description>
 	<url/>
 	<licenses>
 		<license/>

@@ -1,0 +1,406 @@
+{
+  "info": {
+    "name": "Petshop 2026 - Banho e Tosa - Apresentação",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Execute 00 a 13 em ordem. Dados fictícios. IDs e data de amanhã automáticos. 400/404/409 são testes esperados. Usa somente petshop2026_dev."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "runId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "amanha",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tutorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "petId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "atendimentoId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Saúde da API",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"API responde OK\", () => pm.expect(pm.response.text()).to.eql(\"OK\"));",
+              "pm.collectionVariables.set(\"runId\", Date.now().toString());",
+              "const d=new Date(Date.now()+86400000); const pad=n=>String(n).padStart(2,\"0\"); pm.collectionVariables.set(\"amanha\", `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Cadastrar tutor",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tutores",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Ana Demonstração\",\n  \"email\": \"ana.{{runId}}@example.com\",\n  \"telefone\": \"11999990000\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"tutorId\", pm.response.json().id);",
+              "pm.test(\"Tutor recebeu ID\",()=>pm.expect(pm.response.json().id).to.be.a(\"number\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Cadastrar pet Luna",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/pets",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Luna\",\n  \"especie\": \"CACHORRO\",\n  \"raca\": \"SRD\",\n  \"tutorId\": \"{{tutorId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"petId\", pm.response.json().id);",
+              "pm.test(\"Pet vinculado ao tutor\",()=>pm.expect(pm.response.json().tutorId).to.eql(Number(pm.collectionVariables.get(\"tutorId\"))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Agendar banho e tosa",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/atendimentos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigo\": \"PET-{{runId}}\",\n  \"petId\": \"{{petId}}\",\n  \"servico\": \"BANHO_E_TOSA\",\n  \"dataHora\": \"{{amanha}}\",\n  \"valor\": 95.5,\n  \"observacoes\": \"Demonstração fictícia: usar shampoo neutro.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"atendimentoId\", pm.response.json().id);",
+              "pm.test(\"Agendado para Luna por R$ 95,50\",()=>{const a=pm.response.json();pm.expect(a.status).to.eql(\"AGENDADO\");pm.expect(a.petNome).to.eql(\"Luna\");pm.expect(a.valor).to.eql(95.5);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Consultar atendimento",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/atendimentos/{{atendimentoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Mesmo atendimento\",()=>pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"atendimentoId\"))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Listar atendimentos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/atendimentos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Lista contém cadastro\",()=>pm.expect(pm.response.json().some(a=>a.id===Number(pm.collectionVariables.get(\"atendimentoId\")))).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Dados inválidos - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/atendimentos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigo\": \"\",\n  \"petId\": 0,\n  \"servico\": \"BANHO\",\n  \"dataHora\": \"2000-01-01T10:00:00\",\n  \"valor\": -10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Valida valor e data\",()=>{const f=pm.response.json().fields;pm.expect(f).to.have.property(\"valor\");pm.expect(f).to.have.property(\"dataHora\");});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Atendimento inexistente - 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/atendimentos/9223372036854775807"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Código repetido - 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/atendimentos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigo\": \"PET-{{runId}}\",\n  \"petId\": \"{{petId}}\",\n  \"servico\": \"BANHO_E_TOSA\",\n  \"dataHora\": \"{{amanha}}\",\n  \"valor\": 95.5,\n  \"observacoes\": \"Demonstração fictícia: usar shampoo neutro.\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - JSON malformado - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/atendimentos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"codigo\":",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Concluir atendimento",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": "{{baseUrl}}/api/atendimentos/{{atendimentoId}}/concluir"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Status CONCLUIDO\",()=>pm.expect(pm.response.json().status).to.eql(\"CONCLUIDO\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Consultar conclusão persistida",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/atendimentos/{{atendimentoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Conclusão foi gravada\",()=>pm.expect(pm.response.json().status).to.eql(\"CONCLUIDO\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Conclusão repetida - 409",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": "{{baseUrl}}/api/atendimentos/{{atendimentoId}}/concluir"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Consultar pet e tutor",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/pets/{{petId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Pet Luna\",()=>pm.expect(pm.response.json().nome).to.eql(\"Luna\"));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

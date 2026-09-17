@@ -1,11 +1,15 @@
--- No pgAdmin, abra o Query Tool do banco suporteos2026_dev.
-SELECT p.id, p.codigo_barras, p.descricao, g.nome AS grupo,
-       f.razao_social AS fornecedor, p.saldo_estoque, p.valor_unitario,
-       p.saldo_estoque * p.valor_unitario AS valor_estoque,
-       p.garantia_meses
-FROM produto p
-JOIN grupo_produto g ON g.id = p.grupo_produto_id
-LEFT JOIN fornecedor f ON f.id = p.fornecedor_id
-ORDER BY p.id DESC;
+-- Conecte o Query Tool ao banco petshop2026_dev.
+SELECT a.id, a.codigo, p.nome AS pet, p.especie,
+       t.nome AS tutor, a.servico, a.data_hora, a.valor, a.status, a.observacoes
+FROM atendimento a
+JOIN pet p ON p.id = a.pet_id
+JOIN tutor t ON t.id = p.tutor_id
+ORDER BY a.id DESC;
 
-SELECT id, author, filename, dateexecuted FROM databasechangelog ORDER BY orderexecuted;
+SELECT * FROM tutor ORDER BY id DESC;
+SELECT * FROM pet ORDER BY id DESC;
+SELECT id, author, filename, dateexecuted, orderexecuted
+FROM databasechangelog ORDER BY orderexecuted;
+
+SELECT datname FROM pg_database WHERE datname IN
+('petshop2026_dev','petshop2026_test','petshop2026_diff','petshop2026_reference');

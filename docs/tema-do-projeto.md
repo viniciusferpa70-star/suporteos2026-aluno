@@ -1,4 +1,12 @@
-# Tema do projeto de referência
+# Tema atual: Petshop — Banho e Tosa
+
+O projeto individual implementado usa Tutor, Pet e Atendimento. Um tutor tem vários pets; cada pet tem vários atendimentos. O atendimento tem código único, serviço (BANHO, TOSA ou BANHO_E_TOSA), data/hora, valor positivo, observações e status AGENDADO/CONCLUIDO. A API valida entradas, impede duplicidade e conclusão repetida.
+
+Demonstração: tutora fictícia Ana → pet Luna → banho e tosa por R$ 95,50 → consulta → conclusão.
+
+## Referência original do professor (não é o tema implementado)
+
+O conteúdo abaixo foi preservado como material de referência das aulas. O exemplo anterior de produtos também está preservado na branch de backup.
 
 ## Identificação
 
