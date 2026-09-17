@@ -46,6 +46,20 @@ public class Produto {
     @Column(name = "estoque_minimo", nullable = false, precision = 18, scale = 3)
     private BigDecimal estoqueMinimo;
 
+    @Column(name = "garantia_meses", nullable = false)
+    private int garantiaMeses;
+
+    public void definirGarantiaMeses(int meses) {
+        if (meses < 0 || meses > 60) {
+            throw new IllegalArgumentException("Garantia deve estar entre 0 e 60 meses");
+        }
+        this.garantiaMeses = meses;
+    }
+
+    public int getGarantiaMeses() {
+        return garantiaMeses;
+    }
+
     @Column(name = "data_cadastro", nullable = false)
     private LocalDate dataCadastro;
 

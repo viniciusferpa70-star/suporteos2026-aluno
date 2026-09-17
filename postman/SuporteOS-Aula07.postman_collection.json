@@ -1,0 +1,316 @@
+{
+  "info": {
+    "name": "Suporte OS 2026 - Aula 07 - Apresentacao",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Mesma sequencia do video, adaptada ao projeto suporteos2026-aluno. Execute 00 a 09 na ordem. A requisicao 00 gera uma identificacao nova para permitir repetir a apresentacao. IDs sao capturados automaticamente. Dados ficticios; sem senhas."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "grupoId",
+      "value": ""
+    },
+    {
+      "key": "fornecedorId",
+      "value": ""
+    },
+    {
+      "key": "produtoId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Aplicacao responde OK\", () => pm.expect(pm.response.text()).to.eql(\"OK\"));",
+              "pm.collectionVariables.set(\"runId\", Date.now().toString());"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 - Cadastrar grupo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/grupos-produtos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nome\": \"Perifericos {{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"grupoId\", pm.response.json().id);",
+              "pm.test(\"Grupo recebe ID\", () => pm.expect(pm.response.json().id).to.be.a(\"number\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Cadastrar fornecedor",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/fornecedores",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"razaoSocial\": \"Fornecedor ficticio {{runId}}\",\n  \"cnpj\": \"0{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"fornecedorId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Cadastrar produto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/produtos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigoBarras\": \"AULA07-MOUSE-{{runId}}\",\n  \"descricao\": \"Mouse sem fio\",\n  \"saldoEstoque\": 20,\n  \"valorUnitario\": 89.90,\n  \"estoqueMinimo\": 5,\n  \"grupoId\": {{grupoId}},\n  \"fornecedorId\": {{fornecedorId}},\n  \"garantiaMeses\": 12\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"produtoId\", pm.response.json().id);",
+              "pm.test(\"Valor do estoque 1798\", () => pm.expect(pm.response.json().valorEstoque).to.eql(1798));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Consultar produto",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/produtos/{{produtoId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Produto correto\", () => pm.expect(String(pm.response.json().id)).to.eql(String(pm.collectionVariables.get(\"produtoId\"))));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Listar produtos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/produtos"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Lista inclui o produto cadastrado\", () => pm.expect(pm.response.json().some(p => String(p.id) === String(pm.collectionVariables.get(\"produtoId\")))).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Produto invalido - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/produtos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigoBarras\": \"\",\n  \"descricao\": \"\",\n  \"saldoEstoque\": -2,\n  \"valorUnitario\": -1,\n  \"estoqueMinimo\": -3,\n  \"grupoId\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Erros por campo\", () => pm.expect(pm.response.json().fields).to.have.property(\"saldoEstoque\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Produto inexistente - 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/produtos/9223372036854775807"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Codigo de barras repetido - 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/produtos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigoBarras\": \"AULA07-MOUSE-{{runId}}\",\n  \"descricao\": \"Mouse sem fio\",\n  \"saldoEstoque\": 20,\n  \"valorUnitario\": 89.90,\n  \"estoqueMinimo\": 5,\n  \"grupoId\": {{grupoId}},\n  \"fornecedorId\": {{fornecedorId}},\n  \"garantiaMeses\": 12\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - JSON malformado - 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/produtos",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"codigoBarras\": \"JSON-INVALIDO\",",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Mensagem JSON invalido\", () => pm.expect(pm.response.json().message).to.eql(\"JSON ausente ou inválido\"));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

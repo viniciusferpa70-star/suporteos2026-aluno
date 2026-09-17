@@ -5,5 +5,3 @@ databaseChangeLog:
       file: db/changelog/changes/002-create-produto.yaml
   - include:
       file: db/changelog/changes/003-fornecedor-e-estoque-minimo.yaml
-  - include:
-      file: db/changelog/changes/004-garantia-informatica.yaml

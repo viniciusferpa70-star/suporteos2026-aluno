@@ -18,5 +18,6 @@ public record ProdutoResponse(
         Long grupoId,
         String grupoNome,
         Long fornecedorId,
-        String fornecedorRazaoSocial) {
+        String fornecedorRazaoSocial,
+        int garantiaMeses) {
 }

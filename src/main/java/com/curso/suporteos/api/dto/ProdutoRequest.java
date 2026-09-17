@@ -34,5 +34,9 @@ public record ProdutoRequest(
         Long grupoId,
 
         @Positive(message = "Identificador do fornecedor deve ser positivo")
-        Long fornecedorId) {
+        Long fornecedorId,
+
+        @jakarta.validation.constraints.Min(0)
+        @jakarta.validation.constraints.Max(60)
+        Integer garantiaMeses) {
 }

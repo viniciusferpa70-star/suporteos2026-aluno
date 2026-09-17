@@ -76,6 +76,43 @@ class ProdutoApiTest {
     }
 
     @Test
+    void deveRetornar409QuandoCodigoRepetir() throws Exception {
+        GrupoProduto grupo = grupoRepository.save(new GrupoProduto("Grupo conflito"));
+        String json = """
+            {"codigoBarras":"CONFLITO-1","descricao":"Mouse","saldoEstoque":2,
+             "valorUnitario":10,"estoqueMinimo":1,"grupoId":%d,"garantiaMeses":12}
+            """.formatted(grupo.getId());
+        mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content(json))
+            .andExpect(status().isCreated()).andExpect(jsonPath("$.garantiaMeses").value(12));
+        mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content(json))
+            .andExpect(status().isConflict());
+    }
+
+    @Test
+    void deveRejeitarGarantiaForaDoIntervalo() throws Exception {
+        String json = """
+            {"codigoBarras":"GARANTIA-INVALIDA","descricao":"Mouse","saldoEstoque":2,
+             "valorUnitario":10,"estoqueMinimo":1,"grupoId":1,"garantiaMeses":61}
+            """;
+        mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content(json))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.fields.garantiaMeses").exists());
+    }
+
+    @Test
+    void deveConsultarProdutoDepoisDoCadastro() throws Exception {
+        GrupoProduto grupo = grupoRepository.save(new GrupoProduto("Grupo consulta"));
+        String json = """
+            {"codigoBarras":"CONSULTA-1","descricao":"Teclado","saldoEstoque":3,
+             "valorUnitario":20,"estoqueMinimo":1,"grupoId":%d}
+            """.formatted(grupo.getId());
+        String location = mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content(json))
+            .andExpect(status().isCreated()).andReturn().getResponse().getHeader("Location");
+        mockMvc.perform(get(location)).andExpect(status().isOk())
+            .andExpect(jsonPath("$.codigoBarras").value("CONSULTA-1"))
+            .andExpect(jsonPath("$.valorEstoque").value(60));
+    }
+
+    @Test
     void deveRetornar404ParaProdutoInexistente() throws Exception {
         mockMvc.perform(get("/api/produtos/{id}", Long.MAX_VALUE))
                 .andExpect(status().isNotFound())

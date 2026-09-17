@@ -12,13 +12,15 @@ import java.time.LocalDate;
 public class ProdutoMapper {
 
     public Produto toEntity(ProdutoRequest request) {
-        return new Produto(
+        Produto produto = new Produto(
                 request.codigoBarras(),
                 request.descricao(),
                 request.saldoEstoque(),
                 request.valorUnitario(),
                 request.estoqueMinimo(),
                 LocalDate.now());
+        produto.definirGarantiaMeses(request.garantiaMeses() == null ? 0 : request.garantiaMeses());
+        return produto;
     }
 
     public ProdutoResponse toResponse(Produto produto) {
@@ -37,6 +39,7 @@ public class ProdutoMapper {
                 produto.getGrupo().getId(),
                 produto.getGrupo().getNome(),
                 fornecedor == null ? null : fornecedor.getId(),
-                fornecedor == null ? null : fornecedor.getRazaoSocial());
+                fornecedor == null ? null : fornecedor.getRazaoSocial(),
+                produto.getGarantiaMeses());
     }
 }
